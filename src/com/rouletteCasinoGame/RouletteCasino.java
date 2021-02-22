@@ -2,17 +2,27 @@ package com.rouletteCasinoGame;
 
 
 
+import com.rouletteCasinoGame.exceptions.GameException;
+import com.rouletteCasinoGame.persistence.FilesRepository;
+import com.rouletteCasinoGame.persistence.repositoriesPersistence;
+import com.rouletteCasinoGame.roulette.Roulette;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
+
+import static com.rouletteCasinoGame.Game.aBetFor;
 
 
-
-public class RouletteCasino  {
+public class RouletteCasino implements GameResultsListener {
 
     private static final String REQUEST_TO_EXIT = "exit";
-    private static final String RETRY_OR_EXIT = "Please, insert a different path or exit " +
-            "(typing '" + REQUEST_TO_EXIT + "'):";
+    private static final String RETRY_OR_EXIT = "Please, insert a  path where the file is located or press exit " +
+                                                "(typing '" + REQUEST_TO_EXIT + "'):";
 
+    private final Game game;
 
     public static void main(String[] args) {
         try {
@@ -27,17 +37,105 @@ public class RouletteCasino  {
     }
 
     public RouletteCasino(final String[] args) {
-        System.out.println("testing game start function...");
+        game = tryLoadingGameUsing(firstElementFrom(args));
+        game.addListener(this);
+    }
+
+    /**
+     * Returns the first element of an array of Strings.
+     * If the array is null or has no elements, returns
+     * an empty String.
+     * @param array Array of Strings.
+     * @return The first element, if exists or empty String.
+     */
+    private static String firstElementFrom(final String[] array) {
+        if (array == null || array.length == 0) {
+            return "";
+        } else {
+            return array[0];
+        }
+    }
+
+    /**
+     * Will try to load the players' list from a file whose path
+     * should be provided as parameter. If not found, will retry from a command
+     * line prompt. The user can choose to exit the program.
+     * @param initFilePath Path to the init file with players' list
+     */
+    private Game tryLoadingGameUsing(final String initFilePath) {
+        String tryPath = initFilePath;
+
+        while(true) {
+            File tryFile = new File(tryPath);
+            try {
+
+                return loadGameFrom(tryFile);
+
+            } catch (GameException e) {
+                System.out.println("ERROR: " + e.getMessage());
+
+                tryPath = changeFilePathOrExit();
+            }
+        }
+    }
+
+    /**
+     * Loads the game from a file with player names.
+     * @param file The file that is supposed to contain the players' list.
+     * @return The game with its players loaded. It will be initialized
+     * but not started at this point.
+     * @throws GameException If file not found, if error reading file or
+     * if no player names were found in the file's content.
+     */
+    private Game loadGameFrom(final File file) throws GameException {
+        final FilesRepository filesRepository = repositoriesPersistence.loadFileFrom(file);
+        return new Roulette(filesRepository);
+    }
+
+    /**
+     * Will prompt for a file path or user choose to exit.
+     */
+    private String changeFilePathOrExit() {
+        final Scanner scanner = new Scanner(System.in);
+        System.out.println(RETRY_OR_EXIT);
+        final String input = scanner.nextLine();
+
+        if (input.equals(REQUEST_TO_EXIT)) {
+            stop();
+        }
+        return input;
     }
 
     private void start() throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("testing game start function...");
+        boolean working = true;
+        while (working) {
+            game.start();
+
+            final String line = reader.readLine(); //waiting for bets
+            if (line.equals(REQUEST_TO_EXIT)) {
+                working = false;
+            } else {
+                tryToPlaceABetFromInput(line);
+            }
+        }
+
     }
 
-    private void stop() throws IOException {
+    private void tryToPlaceABetFromInput(final String line) {
+        final Bet bet = aBetFor(game).fromInput(line);
+        if (bet != null) {
+            game.placeBet(bet);
+        }
+    }
 
-        System.out.println("testing game stop function...");
+    private void stop() {
+        System.exit(0);
+    }
+
+    @Override
+    public void update(final String totals) {
+        System.out.println(totals);
     }
 }
-
