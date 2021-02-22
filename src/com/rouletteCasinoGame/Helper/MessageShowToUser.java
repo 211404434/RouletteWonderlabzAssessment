@@ -1,6 +1,6 @@
 package com.rouletteCasinoGame.Helper;
 
-import static com.rouletteCasinoGame.GameMessages.*;
+import static com.rouletteCasinoGame.RouletteGameMessages.*;
 
 
 
@@ -52,8 +52,8 @@ public class MessageShowToUser {
 
     public static String defaultGameTotalsHeader() {
         return gameTotalsRow(getString(PLAYER.name()),
-                getString(TOTAL_WIN.name()),
-                getString(TOTAL_BET.name()))
+                getString(TOTAL_WINNINGS.name()),
+                getString(TOTAL_BETINGS.name()))
                 + ("\n---");
     }
 
