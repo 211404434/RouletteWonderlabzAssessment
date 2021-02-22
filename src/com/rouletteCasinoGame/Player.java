@@ -1,7 +1,7 @@
 package com.rouletteCasinoGame;
 
 
-
+import com.rouletteCasinoGame.Helper.MessageShowToUser;
 
 public class Player {
 
@@ -60,5 +60,7 @@ public class Player {
         totalBettings += bet.amount();
     }
 
-
+    public String toString() {
+        return MessageShowToUser.gameTotalsRow(PlayerName, String.valueOf(totalWinnings), String.valueOf(totalBettings));
+    }
 }
