@@ -30,12 +30,12 @@ public class PlayerResult {
      */
     public String toString() {
         if (win()) {
-            return MessageShowToUser.gameResultRow(bet.player().name(),
+            return MessageShowToUser.gameResultRow(bet.player().PlayerName(),
                     bet.target().valueToString(),
                     getString(WIN.name()),
                     payoff());
         } else {
-            return MessageShowToUser.gameResultRow(bet.player().name(),
+            return MessageShowToUser.gameResultRow(bet.player().PlayerName(),
                     bet.target().valueToString(),
                     getString(LOSE.name()),
                     String.valueOf(NO_PAY));
